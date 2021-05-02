@@ -24,6 +24,13 @@ $ git commit -m "something to do"
 $ git push 
 ```
 
+## 忽略文件、文件夹
+在.git文件夹中创建.gitignore文件，并在编辑忽略规则,允许通配符*
+> target //忽略target 目录
+target.json //忽略 target.json文件
+log/* //忽略log下所有文件
+*.css //忽略所有 .css文件
 
-
-
+## 常用命令
+1. 清除缓存
+> git rm -r --cached .
