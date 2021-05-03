@@ -34,3 +34,6 @@ log/* //忽略log下所有文件
 ## 常用命令
 1. 清除缓存
 > git rm -r --cached .
+
+2. 放弃本地修改，强制更新远程文件
+> git fetch --all
