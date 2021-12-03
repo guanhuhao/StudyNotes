@@ -2,8 +2,13 @@
 #include <malloc.h>
 using namespace std;
 #define FRAMESIZE 4096
-#define MAXPAGES 50
+#define MAXPAGES 50000
 #define DEFBUFSIZE 1024
+#define GHH(...) printf(__VA_ARGS__)
+// #define GHH(...) 
+int hit=0;
+int miss=0;
+
 struct bFrame 
 {
     char field [FRAMESIZE];
@@ -24,7 +29,7 @@ struct BCB
     int dirty;      //是否写回
     BCB * next;     //链表形式
     void print(){
-        printf("page_id:%d frame_id:%d \n",&this->page_id,this->frame_id);
+        printf("page_id:%6d   frame_id:%6d   bucket_id:%6d\n",this->page_id,this->frame_id,this->page_id%DEFBUFSIZE);
     }
 };
 class LRU_List{
@@ -41,14 +46,14 @@ public:
         }
         nxt[head]=1;
         pre[tail]=DEFBUFSIZE;
-
     };
+  
     void adjust(int id){
+        id++;
         int id_pre = pre[id];
         int id_nxt = nxt[id];
         pre[id_nxt]=id_pre;
         nxt[id_pre]=id_nxt;
-
         int back = pre[tail];
         nxt[back] = id;
         pre[id] = back;
@@ -57,11 +62,11 @@ public:
         nxt[id] = tail;
     }
 
-    int replace(){
-        int ret = nxt[head];
-        this->adjust(ret);
-        return ret;
-    }
+    // int replace(){
+    //     int ret = nxt[head];
+    //     this->adjust(ret);
+    //     return ret-1;
+    // }
 
     void delet(int id){
         int id_pre = pre[id];
@@ -75,6 +80,14 @@ public:
 
         pre[id] = head;
         nxt[head] = id;
+    }
+
+    void print(){
+        GHH("LRU:");
+        for(int i=head;i!=tail;i=nxt[i]){
+            GHH("%d->",i);
+        }
+        GHH("%d\n",tail);
     }
 };
 class DSMgr
@@ -132,20 +145,22 @@ private:
 }BM;
 
 int main(){
-    freopen("in.txt","r",stdin);
+    freopen("data-5w-50w-zipf.txt","r",stdin);
+    // freopen("in.txt","r",stdin);
+
     DS.OpenFile("data.dbf");
     // DS.RandData();
     int op,id;
     while(scanf("%d,%d",&op,&id)!=EOF){
-        cout<<op<<" "<<id<<endl;
-        if(op==0){
-            BM.Read(id);
-        }else {
-            BM.Write(id);
-        }
-        cout<<123<<endl;
+        BM.Read(id);
+        // if(op==0){
+        //     BM.Read(id);
+        // }else {
+        //     BM.Write(id);
+        // }
     }
-    BM.print();
+    // BM.print();
+    cout<<"hit rate:"<<1.0*hit/(hit+miss)<<endl;
     return 0;
 }
 void DSMgr::RandData(){
@@ -194,15 +209,17 @@ void BMgr::print(){
 }
 int BMgr::FixPage(int page_id, int prot){
     BCB* p = this->PagefindBCB(page_id);
-    if(p!=NULL) return p->frame_id;
+    if(p!=NULL) {
+        hit++;
+        return p->frame_id;
+    }
 
     int vic = this->SelectVictim();
     this->RemoveBCB(this->ftop[vic]);
-
     this->ftop[vic] = page_id;
     this->AddBCB(page_id,vic);
-
     this->LRU.adjust(vic);
+    miss++;
     return vic-DEFBUFSIZE;
 
 }  
@@ -216,10 +233,10 @@ void BMgr::RemoveBCB(int page_id){
 
 }  
 void BMgr::AddBCB(int page_id,int frame_id){
-    cerr<<"Add page_id:"<<page_id<<" frame_id:"<<frame_id<<endl;
+    // cerr<<"Add page_id:"<<page_id<<" frame_id:"<<frame_id<<endl;
     int hash = this->Hash(page_id);
-    BCB *p = ptof[hash];
-    while(p->next!=NULL) p = p->next;
+    BCB *p = this->ptof[hash];   
+    while(p->next!=NULL){  p = p->next;   }
     BCB *newBCB = (BCB*)malloc(sizeof(BCB));
 
     newBCB->page_id=page_id;
@@ -230,7 +247,7 @@ void BMgr::AddBCB(int page_id,int frame_id){
 
 
 int BMgr::SelectVictim(){
-    return this->LRU.nxt[0];
+    return (this->LRU.nxt[0])-1;
 }
 
 int BMgr::Hash(int page_id){
@@ -277,8 +294,8 @@ bFrame DSMgr::ReadPage(int page_id){
     
     this->Seek(page_id*FRAMESIZE);
 
-    fread(data.field,FRAMESIZE,1,this->currFile);cout<<"check1!"<<endl;
-    printf("%s\n",data.field);
+    fread(data.field,FRAMESIZE,1,this->currFile);
+
     return data;
 }
 
@@ -291,15 +308,15 @@ int DSMgr::WritePage(int page_id, bFrame frm){
 
 void BMgr::Read(int page_id){
     int frame_id = this->FixPage(page_id);
-    printf("Read page_id:%d return:%d",page_id,frame_id);
+
+    GHH("Read page_id:%d return:%d\n",page_id,frame_id);
     if(frame_id<0){
+        frame_id = frame_id+DEFBUFSIZE;
+        this->ftop[frame_id]=page_id;
         int hash = this->Hash(page_id);
         strcpy(buf[frame_id].field,DS.ReadPage(page_id).field);
-        printf("%s\n",buf[frame_id].field);
     }
-    cout<<"test1!"<<endl;
     this->LRU.adjust(frame_id);
-    cout<<"test2!"<<endl;
 }
 
 void BMgr::Write(int page_id){
