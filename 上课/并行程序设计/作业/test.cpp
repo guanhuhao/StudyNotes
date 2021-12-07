@@ -5,17 +5,21 @@
 #include <bits/stdc++.h>
 #include "mpi.h"
 using namespace std;
-const int maxn = 10;
+const int maxn = 4;
 /*summa算法 */
-int mesh_c=0;
-int mesh_r=0;
-int n,m;
-int l;
+int mesh_c=maxn/4;
+int mesh_r=maxn/4;
+int n=maxn;
+int m=maxn;
+int l=maxn;
 int num_procs = 0;
-int C[maxn][maxn] ;
+int C[maxn][maxn];
+int A[maxn][maxn];
+int A_line[maxn*maxn];
+int B[maxn][maxn];
+int B_line[maxn*maxn];
 void My_summa(const int my_rank, int *a, int *b)
 {
-    int k, i, j;
     int *c;
     int len_c;
     int dest, tag;
@@ -29,54 +33,59 @@ void My_summa(const int my_rank, int *a, int *b)
     a_col_recv = (int *)malloc((m / mesh_r) * sizeof(int));
     b_row_recv = (int *)malloc((n / mesh_c) * sizeof(int));
 
-        /*各处理器将自己所拥有的A矩阵分块的列发送给跟自己同一行的其他处理器*/
-    for (k = 0; k < l / mesh_c; ++k)
+    /*各处理器将自己所拥有的A矩阵分块的列发送给跟自己同一行的其他处理器*/
+    printf("check1\n");
+    for (int k = 0; k < l / mesh_c; ++k)
     {
-        for (i = 0; i < m / mesh_r; ++i)
+        for (int i = 0; i < m / mesh_r; ++i)
         {
             a_col_send[i] = a[i * (l / mesh_c) + k];
         }
-        for (i = 0; i < mesh_c; ++i)
+        printf("check 1.1\n");
+        for (int i = 0; i < mesh_c; ++i)
         {
             dest = my_rank_row * mesh_c + i;
             tag = my_rank_col * (l / mesh_c) + k;
+            printf("dest:%d tag:%d\n",dest,tag);
             MPI_Send(a_col_send, m / mesh_r, MPI_INT, dest, tag, MPI_COMM_WORLD);
         }
     }
-       /*各处理器将自己所拥有的B矩阵分块的行发送给跟自己同一列的其他处理器*/
-    for (k = 0; k < l / mesh_r; ++k)
+    printf("check2\n");
+    /*各处理器将自己所拥有的B矩阵分块的行发送给跟自己同一列的其他处理器*/
+    for (int k = 0; k < l / mesh_r; ++k)
     {                        
-        for (i = 0; i < n / mesh_c; ++i)
+        for (int i = 0; i < n / mesh_c; ++i)
         {
             b_row_send[i] = b[k * (n / mesh_c) + i];
         }
-        for (i = 0; i < mesh_r; ++i)
+        for (int i = 0; i < mesh_r; ++i)
         {
             dest = my_rank_col + i * mesh_c;
             tag = my_rank_row * (l / mesh_r) + k;
             MPI_Send(b_row_send, n / mesh_c, MPI_INT, dest, tag, MPI_COMM_WORLD);
         }
     }
-       /*初始化C分块 */
+    printf("check3\n");
+    /*初始化C分块 */
     len_c = (m / mesh_r) * (n / mesh_c);
     c = (int *)malloc(len_c * sizeof(int));
-    for (i = 0; i < len_c; ++i)
+    for (int i = 0; i < len_c; ++i)
     {
         c[i] = 0;
     }
        
-    for (k = 0; k < l; ++k)
+    for (int k = 0; k < l; ++k)
     {      /*各个处理器接收来自同一行处理器中的所有A分块的列和同一列处理器中的所有B分块的行*/
         MPI_Recv(a_col_recv, m / mesh_r, MPI_INT, my_rank_row * mesh_c + k / (l / mesh_c), k,
                 MPI_COMM_WORLD, &status_a);
         MPI_Recv(b_row_recv, n / mesh_c, MPI_INT, k / (l / mesh_r) * mesh_c + my_rank_col, k,
                 MPI_COMM_WORLD, &status_b);
                /*各个处理器已经拥有了计算对应C子块的所有信息，相乘累加后即可得到对应C子块*/
-        for (i = 0; i < m / mesh_r; ++i)
+        for (int x = 0; x < m / mesh_r; ++x)
         { 
-            for (j = 0; j < n / mesh_c; ++j)
+            for (int y = 0; y < n / mesh_c; ++y)
             {
-                c[i * (n / mesh_c) + j] += a_col_recv[i] * b_row_recv[j]; 
+                c[x * (n / mesh_c) + y] += a_col_recv[x] * b_row_recv[y]; 
             }
         }
     }
@@ -98,7 +107,7 @@ void Collect_C()
     len_c = (m / mesh_r) * (n / mesh_c);
     c_recv = (int *)malloc(len_c * sizeof(int));
         /*将C子块填到相应的C矩阵坐标下 */
-for (k = 0; k < num_procs; ++k)
+    for (k = 0; k < num_procs; ++k)
     {
         MPI_Recv(c_recv, len_c, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         id_recv = status.MPI_SOURCE;
@@ -119,7 +128,7 @@ for (k = 0; k < num_procs; ++k)
 }
 
  /*打印矩阵 */
-void Print(char *str, int **matrix, int m, int n)
+void Print(char *str, int matrix[maxn][maxn], int m, int n)
 {
     int i, j;
     printf("%s", str);
@@ -134,11 +143,28 @@ void Print(char *str, int **matrix, int m, int n)
     printf("\n");
 }
 
+void RandData(){
+    for(int i = 0; i < maxn; i++){
+        for(int j = 0 ; j < maxn; j++){
+            A[i][j] = rand()%100;
+            B[i][j] = rand()%100;
+            A_line[i*maxn+j] = A[i][j];
+            B_line[i*maxn+j] = B[i][j];
+        }
+    }
+}
 int main(int argc,char* argv[]){
+
+    RandData();
+
     int myid, source;
     MPI_Status status;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+    My_summa(myid, A_line, B_line);
+    Collect_C();
+    Print("Summa 计算结果",C,maxn,maxn);
     return 0;
 }
