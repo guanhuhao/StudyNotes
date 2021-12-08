@@ -7,8 +7,8 @@
 using namespace std;
 const int maxn = 4;
 /*summa算法 */
-int mesh_c=maxn/4;
-int mesh_r=maxn/4;
+int mesh_c=maxn;
+int mesh_r=maxn;
 int n=maxn;
 int m=maxn;
 int l=maxn;
