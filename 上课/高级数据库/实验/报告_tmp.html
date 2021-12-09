@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>报告.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%E5%AD%98%E5%82%A8%E4%BB%A5%E5%8F%8A%E7%BC%93%E5%AD%98%E7%AE%A1%E7%90%86%E5%99%A8-%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A">存储以及缓存管理器 实验报告</h1>
+<p>本实验主要涉及:</p>
+<blockquote>
+<ul>
+<li>Buffer以及Frame(内存页)大小设置</li>
+<li>Buffer以及Frame存储结构</li>
+<li>页格式</li>
+<li>页存储结构</li>
+<li>文件格式</li>
+<li>缓存技术</li>
+<li>哈希技术</li>
+<li>文件存储结构</li>
+<li>磁盘的接口功能以及缓存模块</li>
+</ul>
+</blockquote>
+<h2 id="%E4%B8%80%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1">一、模块设计</h2>
+<h3 id="11-buffer%E4%BB%A5%E5%8F%8Aframe%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84">1.1 Buffer以及Frame存储结构</h3>
+<h4 id="buffer%E4%BB%A5%E5%8F%8Aframe%E5%A4%A7%E5%B0%8F%E8%AE%BE%E7%BD%AE">Buffer以及Frame大小设置</h4>
+<p>Buffer一般指主存空间(内存),是CPU能直接访问的内容,Buffer可以视为frame组成的一维数组,当某页被需求时,将其加载到内存中,主流数据库中内存页(frame)与硬盘页(page)保证相同大小(防止碎片化),本项目中同样采用相同的策略,并且<strong>我们规定内存大小为1024</strong></p>
+<h4 id="%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">代码实现</h4>
+<p>对于一个Frame,我们可以定义为一串连续的内存空间用于进行数据的存储,其代码表示如下:</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> FRAMESIZE 4096</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">bFrame</span> 
+{</span>
+    <span class="hljs-keyword">char</span> field [FRAMESIZE];
+};
+</div></code></pre>
+<p>由于Buffer由若干Frame组成,因此我们类似的可以定义:</p>
+<pre class="hljs"><code><div><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> DEFBUFSIZE 1024</span>
+bFrame buf[DEFBUFSIZE]; <span class="hljs-comment">// or the size that the user defined by the input parameter</span>
+</div></code></pre>
+<p>上述为Buffer的物理表示,其可以被Buffer manager/文件系统或其他方式访问,提供所需页(page)</p>
+<h3 id="12-%E9%A1%B5%E6%A0%BC%E5%BC%8F">1.2 页格式</h3>
+<p>本次实验对于页属性仅保留$page_id$以及$page_size$,因此忽略页格式的影响</p>
+<h3 id="13-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F">1.3 文件格式</h3>
+<p>本次实验建议使用基于目录的方式建立数据库文件,每个文件由一个索引页(目录)用于<strong>顺序</strong>储存所有其他页的指针,对应的数据页不储存任何文件指针,仅保留数据,额外要求,对于索引页的访问<strong>必须是顺序</strong>的
+使用基于目录的方式主要出于可以快速获得对应的页,而不用对一长串的页进行遍历(即只需要对目录页扫一遍就能找到了,但是如果使用链表的方式,则需要对中间所有页进行一次遍历)
+本次实验中,由于<strong>直接在操作系统提供的文件系统上建立数据库文件</strong>,因此对于索引我们可以直接使用偏移来进行计算,在上述基础设定下,我们进一步节约了索引页的读取,默认数据库文件为一系列连续的磁盘空间,因此我们只需要对文件指针进行对应的偏移操作就能保证访问任意指定的页.</p>
+<h3 id="14-%E7%BC%93%E5%AD%98%E7%AE%A1%E7%90%86%E6%8A%80%E6%9C%AF">1.4 缓存管理技术</h3>
+<h3 id="lru%E6%9C%80%E8%BF%91%E6%9C%80%E5%B0%91%E4%BD%BF%E7%94%A8">LRU(最近最少使用)</h3>
+<p>我们使用LRU作为实验涉及的仅有的替换策略,LRU每次总是找到最近最久未使用的元素进行替换,即对于LRU队列中按最后一次访问时间排序(升序,队首弹出,队尾压入)<br>
+使用LRU的原因处于这样一个假设,最近被使用的元素,在近期更有可能被访问,即时间局部性,并且其运行时间稳定.
+这里我们使用静态链表的方式来模拟LRU,静态链表即使用数组模拟链表操作,具有以下优点:</p>
+<blockquote>
+<ul>
+<li>避免了使用链表时带来的动态内存分配开销(malloc)</li>
+<li>避免了因动态申请内存导致的野指针或内存溢出风险</li>
+<li>在一定程度上支持随机访问,即可以直接获取对应id的节点,而不需要通过对链表结构进行遍历才能得到对应结果</li>
+</ul>
+</blockquote>
+<h4 id="%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">代码实现</h4>
+<pre class="hljs"><code><div><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LRU_List</span>{</span>
+<span class="hljs-keyword">public</span>:
+    <span class="hljs-keyword">int</span> nxt[DEFBUFSIZE+<span class="hljs-number">2</span>],pre[DEFBUFSIZE+<span class="hljs-number">2</span>];    <span class="hljs-comment">//静态数组模拟指针操作</span>
+    <span class="hljs-keyword">int</span> head,tail;          <span class="hljs-comment">//分别表示头指针,尾指针</span>
+    LRU_List();             <span class="hljs-comment">//初始化构造函数</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">adjust</span><span class="hljs-params">(<span class="hljs-keyword">int</span> id)</span></span>;    <span class="hljs-comment">//将指定id节点放到队尾</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">delet</span><span class="hljs-params">(<span class="hljs-keyword">int</span> id)</span></span>;     <span class="hljs-comment">//将指定节点从LRU中删除(实际上实现中是将其移动到队首,等待下次使用)</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">getVictim</span><span class="hljs-params">()</span></span>;        <span class="hljs-comment">//返回第一个可以删除的节点id,即头指针head指向的下一个元素</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">print</span><span class="hljs-params">()</span></span>;           <span class="hljs-comment">//调试用输出</span>
+};
+</div></code></pre>
+<p>我们使用nxt,pre数组来记录节点的前驱以及后继节点id,原本需要使用一个val来储存对应节点的信息,但是考虑到我们这里仅需要记录其id,因此这一维我们省略.
+同时我们设置头节点head的id为0,尾节点tail的id为DEBUFSIZE+1,这一步我们在类的初始化函数中完成,并且在初始化函数中我们构造一个形似$0\to 1\to 2\to ...\to tail$的初始链表,这样后续就不涉及LRU的扩充.
+对于BufferManager主要调用getVictim来选出下一个可以替换的frame_id,然后等新的page加载到该frame之后调用adjust,将该页放到队尾,参与LRU循环.</p>
+<h3 id="15-%E5%93%88%E5%B8%8C%E6%8A%80%E6%9C%AF">1.5 哈希技术</h3>
+<p>对于在内存中的页,使用一个buffer control block(BCB)来进行管理,一个BCB包括下面的信息:</p>
+<blockquote>
+<ul>
+<li>page_id:标记对应物理页id,并且用于hash到对应的桶中进行管理</li>
+<li>frame_id:标记对应内存页id,</li>
+<li>page_latch:锁</li>
+<li>fix_count:用于表示当前有多少个线程正在读它,作用相当于pin-count,当其值为0时才可以被释放</li>
+<li>dirty_bit:脏标记用于判断是否需要写回</li>
+</ul>
+</blockquote>
+<p>本次实验使用简单静态哈希,对于静态hash桶的容量时固定的,当满的时候使用溢出块(链表)来储存多余的数据,<strong>对于单个桶的访问也是顺序的</strong>,对于静态hash函数的选择可以参考下面的方式:</p>
+<pre class="hljs"><code><div>H(k)=(page_id)%buffer_size
+</div></code></pre>
+<h4 id="%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">代码实现</h4>
+<p>对于BCB我们可以考虑使用下面的结构体来表示:</p>
+<pre class="hljs"><code><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">BCB</span>
+{</span>
+    BCB();          <span class="hljs-comment">//构造函数</span>
+    <span class="hljs-keyword">int</span> page_id;    <span class="hljs-comment">//物理页id</span>
+    <span class="hljs-keyword">int</span> frame_id;   <span class="hljs-comment">//内存页id</span>
+    <span class="hljs-keyword">int</span> latch;      <span class="hljs-comment">//是否加锁</span>
+    <span class="hljs-keyword">int</span> count;      <span class="hljs-comment">//是否占用</span>
+    <span class="hljs-keyword">int</span> dirty;      <span class="hljs-comment">//是否写回</span>
+    BCB * next;     <span class="hljs-comment">//链表形式</span>
+};
+</div></code></pre>
+<p>对于hash映射函数,我们使用下面的代码来完成对应功能:</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">BMgr::Hash</span><span class="hljs-params">(<span class="hljs-keyword">int</span> page_id)</span></span>{
+    <span class="hljs-keyword">return</span> page_id%DEFBUFSIZE;
+}
+</div></code></pre>
+<p>其作为BufferManage成员函数供其调用,主要算法流程如下:</p>
+<blockquote>
+<ul>
+<li>
+<ol>
+<li>一个新的页需要被读取</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>调用hash算出其应该放置在哪个BCB链表中</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>在对应BCB中查找是否存在对应的页?如果存在跳转到4,否则跳转到5</li>
+</ol>
+</li>
+<li>
+<ol start="4">
+<li>如果存在返回对应frame_id,结束</li>
+</ol>
+</li>
+<li>
+<ol start="5">
+<li>如果不存在,则将某一页置换为新的需要读的页,其中涉及到对应BCB的删除,以及新BCB的追加,这些步骤都需要再调用以此hash来进行计算</li>
+</ol>
+</li>
+</ul>
+</blockquote>
+<h3 id="16-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8">1.6 文件存储</h3>
+<p>本次实验中我们所有数据以及目录结构都存在一个文件中,并且我们对于该文件命名为<strong>data.dbf</strong>,该文件由50000个页组成,每个页大小为4kb,因此总共约200MB的大小.
+对于页的索引,由于我们建立在文件系统上,因此可以视为一串连续的磁盘空间,因此只需要使用偏移即可完成对对应页的读取</p>
+<h2 id="%E4%BA%8C%E7%B1%BB%E8%AE%BE%E8%AE%A1">二、类设计</h2>
+<h3 id="21-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E5%99%A8data-storage-manager">2.1 数据存储管理器(Data Storage Manager)</h3>
+<pre class="hljs"><code><div><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DSMgr</span>
+{</span>
+<span class="hljs-keyword">public</span>:
+    DSMgr();    <span class="hljs-comment">//构造函数</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">OpenFile</span><span class="hljs-params">(<span class="hljs-built_in">string</span> filename)</span></span>;  <span class="hljs-comment">//打开指定数据文件,返回错误码</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">CloseFile</span><span class="hljs-params">()</span></span>;                <span class="hljs-comment">//在关闭数据库时调用</span>
+    <span class="hljs-function">bFrame <span class="hljs-title">ReadPage</span><span class="hljs-params">(<span class="hljs-keyword">int</span> page_id)</span></span>;   <span class="hljs-comment">//从磁盘中读取某页到内存中,被FixPage调用,使用fseek,以及fread获取指定内容</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">WritePage</span><span class="hljs-params">(<span class="hljs-keyword">int</span> frame_id, bFrame frm)</span></span>;    <span class="hljs-comment">//将内存中某页写回到磁盘,在任意写回时刻被调用,返回值表示写了多少字节,使用fssek以及fwrite进行定向书写</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">Seek</span><span class="hljs-params">(<span class="hljs-keyword">int</span> offset, <span class="hljs-keyword">int</span> pos)</span></span>;  <span class="hljs-comment">//将文件指针移动到指定位置</span>
+    <span class="hljs-function">FILE * <span class="hljs-title">GetFile</span><span class="hljs-params">()</span></span>;               <span class="hljs-comment">//返回当前文件指针</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">IncNumPages</span><span class="hljs-params">()</span></span>;             <span class="hljs-comment">//计数当前使用Page页+1</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">GetNumPages</span><span class="hljs-params">()</span></span>;              <span class="hljs-comment">//获得当前内存中页数目</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SetUse</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, <span class="hljs-keyword">int</span> use_bit)</span></span>;    <span class="hljs-comment">//使用位图来表示当前页是否被占用,</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">GetUse</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span></span>;                  <span class="hljs-comment">//获取位图</span>
+<span class="hljs-keyword">private</span>:
+    FILE *currFile;                         <span class="hljs-comment">//文件指针用于表示当前文件</span>
+    <span class="hljs-keyword">int</span> numPages;                           <span class="hljs-comment">//当前使用页数目</span>
+    <span class="hljs-keyword">int</span> pages[MAXPAGES];                    <span class="hljs-comment">//物理页</span>
+};
+</div></code></pre>
+<h3 id="22-%E7%BC%93%E5%AD%98%E7%AE%A1%E7%90%86%E5%99%A8buffer-manager">2.2 缓存管理器(Buffer Manager)</h3>
+<pre class="hljs"><code><div><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BMgr</span>
+{</span>
+<span class="hljs-keyword">public</span>:
+    BMgr();     <span class="hljs-comment">//构造函数</span>
+    <span class="hljs-comment">// Interface functions</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">FixPage</span><span class="hljs-params">(<span class="hljs-keyword">int</span> page_id, <span class="hljs-keyword">int</span> prot)</span></span>; <span class="hljs-comment">//查找给定page_id是否存在内存中,如果不在则选择某页替换,并返回对应frame_id</span>
+    <span class="hljs-function">Newpage <span class="hljs-title">FixNewPage</span><span class="hljs-params">()</span></span>;                   <span class="hljs-comment">//申请一个空页,因此需要分别提供空闲的frame以及page,因此将&lt;frame_id,page_id&gt;作为返回值</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">UnfixPage</span><span class="hljs-params">(<span class="hljs-keyword">int</span> page_id)</span></span>;         <span class="hljs-comment">//接触对应page_id的一次占用,当对应占用为0时可以将其进行替换或者其他操作</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">NumFreeFrames</span><span class="hljs-params">()</span></span>;                <span class="hljs-comment">//返回当前内存中还空闲的页个数</span>
+    <span class="hljs-comment">// Internal Functions</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">SelectVictim</span><span class="hljs-params">()</span></span>;                 <span class="hljs-comment">//返回一个可以替换的页</span>
+    <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">Hash</span><span class="hljs-params">(<span class="hljs-keyword">int</span> page_id)</span></span>;              <span class="hljs-comment">//实现将page_id到frame_id的映射</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RemoveBCB</span><span class="hljs-params">(BCB * ptr, <span class="hljs-keyword">int</span> page_id)</span></span>; <span class="hljs-comment">//将page_id对应的BCB删除</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">RemoveLRUEle</span><span class="hljs-params">(<span class="hljs-keyword">int</span> frid)</span></span>;            <span class="hljs-comment">//在LRU列表中移除对应frid</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">SetDirty</span><span class="hljs-params">(<span class="hljs-keyword">int</span> frame_id)</span></span>;            <span class="hljs-comment">//将对应frame_id脏标记置1,1表示需写回,0表示不用写回</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">UnsetDirty</span><span class="hljs-params">(<span class="hljs-keyword">int</span> frame_id)</span></span>;          <span class="hljs-comment">//将对应frame_id脏标记置0</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">WriteDirtys</span><span class="hljs-params">()</span></span>;                     <span class="hljs-comment">//当系统结束运行时,对于脏标记为1的frame需要调用,保证数据一致性</span>
+    PrintFrame(<span class="hljs-keyword">int</span> frame_id);               <span class="hljs-comment">//打印对应帧消息,用于调试(?)</span>
+<span class="hljs-keyword">private</span>:
+    <span class="hljs-comment">// Hash Table</span>
+    <span class="hljs-keyword">int</span> ftop[DEFBUFSIZE];                   <span class="hljs-comment">//frame到page的hash映射</span>
+    BCB* ptof[DEFBUFSIZE];                  <span class="hljs-comment">//page到frame的映射</span>
+};
+</div></code></pre>
+<h3 id="23-%E7%B1%BB%E4%BE%9D%E8%B5%96%E5%9B%BE%E4%BB%A5%E5%8F%8A%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB">2.3 类依赖图以及函数调用关系</h3>
+<h4 id="%E7%B1%BB%E4%BE%9D%E8%B5%96%E5%9B%BE">类依赖图</h4>
+<p><img src="file:///c:/Users/10573/Desktop/StudyNotes/上课/高级数据库/实验/pic/1.jpg" alt=""></p>
+<h4 id="%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB">函数调用关系</h4>
+
+</body>
+</html>

@@ -8,6 +8,12 @@ using namespace std;
 // #define GHH(...) 
 int hit=0;
 int miss=0;
+int missr = 0;
+int missw = 0;
+double writeT = 0;
+double readT = 0 ;
+double missReadT = 0;
+double missWriteT = 0;
 
 struct bFrame 
 {
@@ -151,16 +157,26 @@ int main(){
     DS.OpenFile("data.dbf");
     // DS.RandData();
     int op,id;
-    while(scanf("%d,%d",&op,&id)!=EOF){
-        BM.Read(id);
-        // if(op==0){
-        //     BM.Read(id);
-        // }else {
-        //     BM.Write(id);
-        // }
+    int cntr,cntw;
+    cntr=cntw=0;
+    while(scanf("%d,%d",&op,&id)!=EOF){                                          
+        if(op==0){
+            cntr++;
+            BM.Read(id);
+        }else {
+            BM.Write(id);
+            cntw++;
+        }
     }
     // BM.print();
-    cout<<"hit rate:"<<1.0*hit/(hit+miss)<<endl;
+    cout<<"Hit Rate:"<<100.0*hit/(hit+miss)<<"%"<<endl;
+    cout<<"Tot Number of Read:"<<cntr<<"   Tot Number of Write:"<<cntw<<endl;
+    cout<<"Number of Hit Read:"<<cntr-missr<<"   Number of Hit Write:"<<cntw-missw<<endl;
+    cout<<"Runtime of Read:"<<readT<<"(ms)   Runtime of Write:"<<writeT<<"(ms)"<<endl;
+    cout<<"Runtime of Miss Read:"<<missReadT<<"(ms)   Runtime of Miss Write:"<<missWriteT<<"(ms)"<<endl;  
+    cout<<"Avg Runtime of Hit Read:"<<(readT-missReadT)/(cntr-missr)<<"(ms)  Avg Runtime of Miss Read:"<<missReadT/missr<<"(ms)"<<endl;
+    cout<<"Avg Runtime of Hit Write:"<<(writeT-missWriteT)/(cntw-missw)<<"(ms)  Avg Runtime of Miss Write:"<<missWriteT/missw<<"(ms)"<<endl;
+
     return 0;
 }
 void DSMgr::RandData(){
@@ -307,27 +323,43 @@ int DSMgr::WritePage(int page_id, bFrame frm){
 }
 
 void BMgr::Read(int page_id){
-    int frame_id = this->FixPage(page_id);
 
-    GHH("Read page_id:%d return:%d\n",page_id,frame_id);
+    clock_t begin = clock();
+    int frame_id = this->FixPage(page_id);
+    int flag = 0;
+    // GHH("Read page_id:%d return:%d\n",page_id,frame_id);
     if(frame_id<0){
+        flag = 1;
+        missr++;
         frame_id = frame_id+DEFBUFSIZE;
         this->ftop[frame_id]=page_id;
         int hash = this->Hash(page_id);
         strcpy(buf[frame_id].field,DS.ReadPage(page_id).field);
     }
     this->LRU.adjust(frame_id);
+
+    clock_t end = clock();
+    readT += 1000.0*(end-begin)/CLOCKS_PER_SEC;
+    if(flag == 1) 
+        missReadT += 1000.0*(end-begin)/CLOCKS_PER_SEC;
 }
 
 void BMgr::Write(int page_id){
+    clock_t begin = clock();
     int frame_id = this->FixPage(page_id);
+    int flag = 0;
     if(frame_id<0) {
-        cerr<<"write error!"<<endl;
+        flag = 1;
+        missw++;
+        frame_id = frame_id+DEFBUFSIZE;
+        this->ftop[frame_id]=page_id;
+        int hash = this->Hash(page_id);
+        strcpy(buf[frame_id].field,DS.ReadPage(page_id).field);
     }
+    DS.WritePage(page_id,buf[frame_id]);
     this->LRU.adjust(frame_id);
+    clock_t end = clock();
+    writeT+=1000.0*(end-begin)/CLOCKS_PER_SEC;
+    if(flag == 1) 
+        missWriteT += 1000.0*(end-begin)/CLOCKS_PER_SEC;
 }
-//! int DSMgr::WritePage(int page_id, bFrame frm); 该函数应该为page_id而不是frame_id
-//! int DSMgr::Seek(int offset, int pos=0) pos没用
-//! 位图获取长度不够
-//! FixPage prot意义不明
-//! 数据中存在没读就写
