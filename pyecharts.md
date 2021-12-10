@@ -56,6 +56,58 @@ https://pyecharts.org/#/zh-cn/themes?id=%e4%b8%bb%e9%a2%98%e9%a3%8e%e6%a0%bc
 ## 具体图表绘制
 ### 柱状图
 
+### 饼图
+对于参数设置以及解释,可以参考官方文档:
+https://pyecharts.org/#/zh-cn/basic_charts?id=pie%ef%bc%9a%e9%a5%bc%e5%9b%be
+下面给出一个简单饼图实例:
+```python
+from pyecharts import options as opts
+from pyecharts.charts import Pie
+from pyecharts.faker import Faker
+
+c = (
+    Pie()
+    .add(
+        "",
+        [list(z) for z in zip(Faker.choose(), Faker.values())],
+        radius=["40%", "55%"],
+        label_opts=opts.LabelOpts(
+            position="outside",
+            formatter="{a|{a}}{abg|}\n{hr|}\n {b|{b}: }{c}  {per|{d}%}  ",
+            background_color="#eee",
+            border_color="#aaa",
+            border_width=1,
+            border_radius=4,
+            rich={
+                "a": {"color": "#999", "lineHeight": 22, "align": "center"},
+                "abg": {
+                    "backgroundColor": "#e3e3e3",
+                    "width": "100%",
+                    "align": "right",
+                    "height": 22,
+                    "borderRadius": [4, 4, 0, 0],
+                },
+                "hr": {
+                    "borderColor": "#aaa",
+                    "width": "100%",
+                    "borderWidth": 0.5,
+                    "height": 0,
+                },
+                "b": {"fontSize": 16, "lineHeight": 33},
+                "per": {
+                    "color": "#eee",
+                    "backgroundColor": "#334455",
+                    "padding": [2, 4],
+                    "borderRadius": 2,
+                },
+            },
+        ),
+    )
+    .set_global_opts(title_opts=opts.TitleOpts(title="Pie-富文本示例"))
+    .render("pie_rich_label.html")
+)
+```
+其中rich中主要用于设置标签的样式,即上面formatter中设置的格式化标签
 ### 热点图
 对于参数设置以及解释,可以参考官方文档:
 https://pyecharts.org/#/zh-cn/rectangular_charts?id=heatmap%ef%bc%9a%e7%83%ad%e5%8a%9b%e5%9b%be
@@ -79,9 +131,21 @@ c = (
         label_opts=opts.LabelOpts(is_show=True, position="inside"),
     )
     .set_global_opts(
-        title_opts=opts.TitleOpts(title="HeatMap-Label 显示"),
-        visualmap_opts=opts.VisualMapOpts(),
+        title_opts=opts.TitleOpts(title="HeatMap-Label 显示",pos_left="center"),
+        visualmap_opts=opts.VisualMapOpts(
+            min_=0, max_=10, is_calculable=True, orient="horizontal", pos_left="center"
+        )
     )
     .render("heatmap_with_label_show.html")
 )
+```
+通过修改.set_global_opts中visualmap_opts的min_以及max_可以修改热力图中对应的颜色
+数据填充时主要修改value的值进行,value为一个三元组的list,三元组的组成可以表示为(x,y,val),即在坐标(x,y)其数据值为val,上述代码中Faker.clock,Faker.week均为1维列表表示坐标轴标号
+
+
+## 其他
+如果想在jupyter中输出图片,只需要进行少量修改即可实现
+```python
+.render("heatmap_with_label_show.html") #该行代码实现输出到文件
+.render_notebook()                      #该行代码实现输出到jupyter
 ```
