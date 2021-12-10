@@ -106,6 +106,6 @@ log/* //忽略log下所有文件
 
 6. 中文乱码解决方案
 如果中文文件名出现类似\212\210之类的乱码,可以使用下面的方式让中文字符正常显示
-> + git config --global core.quotepath false 
+>+ git config --global core.quotepath false 
 
 
