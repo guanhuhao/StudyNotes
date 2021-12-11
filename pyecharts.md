@@ -55,7 +55,47 @@ https://pyecharts.org/#/zh-cn/themes?id=%e4%b8%bb%e9%a2%98%e9%a3%8e%e6%a0%bc
 
 ## 具体图表绘制
 ### 柱状图
+对于参数设置以及解释,可以参考官方文档:
+https://pyecharts.org/#/zh-cn/rectangular_charts?id=bar%ef%bc%9a%e6%9f%b1%e7%8a%b6%e5%9b%be%e6%9d%a1%e5%bd%a2%e5%9b%be
+下面给出一个简单柱状图实例:
+```python
+from pyecharts import options as opts
+from pyecharts.charts import Bar
+from pyecharts.commons.utils import JsCode
+from pyecharts.globals import ThemeType
 
+list2 = [
+    {"value": 12, "percent": 12 / (12 + 3)},
+    {"value": 23, "percent": 23 / (23 + 21)},
+    {"value": 33, "percent": 33 / (33 + 5)},
+    {"value": 3, "percent": 3 / (3 + 52)},
+    {"value": 33, "percent": 33 / (33 + 43)},
+]
+
+list3 = [
+    {"value": 3, "percent": 3 / (12 + 3)},
+    {"value": 21, "percent": 21 / (23 + 21)},
+    {"value": 5, "percent": 5 / (33 + 5)},
+    {"value": 52, "percent": 52 / (3 + 52)},
+    {"value": 43, "percent": 43 / (33 + 43)},
+]
+
+c = (
+    Bar(init_opts=opts.InitOpts(theme=ThemeType.LIGHT))
+    .add_xaxis([1, 2, 3, 4, 5])
+    .add_yaxis("product1", list2, stack="stack1", category_gap="50%")
+    .add_yaxis("product2", list3, stack="stack1", category_gap="50%")
+    .set_series_opts(
+        label_opts=opts.LabelOpts(
+            position="right",
+            formatter=JsCode(
+                "function(x){return Number(x.data.percent * 100).toFixed() + '%';}"
+            ),
+        )
+    )
+    .render("stack_bar_percent.html")
+)
+```
 ### 饼图
 对于参数设置以及解释,可以参考官方文档:
 https://pyecharts.org/#/zh-cn/basic_charts?id=pie%ef%bc%9a%e9%a5%bc%e5%9b%be

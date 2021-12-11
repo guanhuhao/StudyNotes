@@ -366,6 +366,10 @@ code {
     });
   </script>
 <h1 id="%E5%AD%98%E5%82%A8%E4%BB%A5%E5%8F%8A%E7%BC%93%E5%AD%98%E7%AE%A1%E7%90%86%E5%99%A8-%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A">存储以及缓存管理器 实验报告</h1>
+<h2 id="%E7%9B%AE%E5%BD%95">目录</h2>
+<p>[toc]</p>
+<p><font size =10>姓名:管胡昊  学号:SA011162</font></p>
+<div STYLE="page-break-after: always;"></div>
 <p>本实验主要涉及:</p>
 <blockquote>
 <ul>
@@ -543,9 +547,41 @@ bFrame buf[DEFBUFSIZE]; <span class="hljs-comment">// or the size that the user 
 };
 </div></code></pre>
 <h3 id="23-%E7%B1%BB%E4%BE%9D%E8%B5%96%E5%9B%BE%E4%BB%A5%E5%8F%8A%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB">2.3 类依赖图以及函数调用关系</h3>
-<h4 id="%E7%B1%BB%E4%BE%9D%E8%B5%96%E5%9B%BE">类依赖图</h4>
-<p><img src="file:///c:/Users/10573/Desktop/StudyNotes/上课/高级数据库/实验/pic/1.jpg" alt=""></p>
-<h4 id="%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB">函数调用关系</h4>
+<h4 id="231-%E7%B1%BB%E4%BE%9D%E8%B5%96%E5%9B%BE">2.3.1 类依赖图</h4>
+<p><img src="./pic/1.jpg" alt=""></p>
+<h4 id="232-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB">2.3.2 函数调用关系</h4>
+<p><img src="./pic/2.jpg" alt="">
+上述调用关系图中,红色字体表示DiskSpaceManager的成员函数,绿色字体表示LRU的成员函数,剩下的蓝色字体表示BufferManager的成员函数,对于程序我们分别实例化对应的对象,类与类之间通过该实例化对象实现接口的互相调用.</p>
+<h2 id="%E4%B8%89%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94">三、性能对比</h2>
+<h3 id="31-%E9%83%A8%E5%88%86%E7%BB%93%E6%9E%9C%E8%BE%93%E5%87%BA">3.1 部分结果输出</h3>
+<p><img src="./pic/3.png" alt="">
+上述运行结果主要展示了下面几个我们关注的性能指标:</p>
+<blockquote>
+<ul>
+<li>Hit Rate: 表示命中率,即收到一个请求时,请求页恰好存在主存中不需要额外读取的概率</li>
+<li>Tot Number of Read/Write : 表示请求中读取/写入请求的总次数</li>
+<li>Number of Hit Read/Write : 表示命中的读取/写入次数</li>
+<li>Runtime of Read/Write : 表示读取/写入对应的总运行时间</li>
+<li>Runtime of Miss Read/Write : 表示当miss时读取/写入对应的运行时间总和</li>
+<li>Avg Runtime of Hit Read/Write : 表示命中时平均的读取/写入所需时间</li>
+<li>Avg Runtime of Miss Read/Write : 表示miss时平均的读取写入时间</li>
+</ul>
+</blockquote>
+<p>根据我们初步的实验结果我们可以发现,使用大小为1024的buffer,我们使用LRU策略可以将命中率提高到30%,如果不采用LRU策略我们可以简单的得到,采用随机缓存的策略在使用相同buffer空间的情况下命中率可能仅有$\frac{1024}{50000}\approx 2%$</p>
+<h3 id="32-%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83">3.2 测试数据分布</h3>
+<p><img src="./pic/4.png" alt="">
+我们对所有对磁盘的查询操作记录其对应的次数,并将其以热力图的形式进行展示,很明显的我们看到数据具有明显的分布趋势,特别是对于0-250区间的磁盘页,其相关的询问请求几乎到达了所有询问的$\frac{1}{3}$这也从另一方面成为了LRU算法得到的近似$30%$的命中率的保障</p>
+<h3 id="%E5%91%BD%E4%B8%AD%E4%B8%8E%E9%9D%9E%E5%91%BD%E4%B8%AD%E8%80%97%E6%97%B6%E5%88%86%E6%9E%90">命中与非命中耗时分析</h3>
+<p>对于读取操作以及写入操作,大致上命中概率持平,均在$30%$左右,但是实际上运行时间差距很大,对于整体来说对于读入操作,如果命中基本上可以不需要花费额外的时间代价,即使对于写入操作在命中率30%的情况下,其运行时间占比也仅为15%,具体结果可以参看下面的饼图:
+<img src="./pic/5.png" alt=""></p>
+<center> Read操作运行时间Hit/Miss一览表</center>
+<p><img src="./pic/6.png" alt=""></p>
+<center> Writed操作运行时间Hit/Miss一览表</center>
+<p>为了进一步看出区别,我们特别的将加速比以柱状图的形式表现出来,如下表:
+<img src="./pic/7.png" alt="">
+我们可以看出对于读取操作Miss/Hit的加速比甚至达到了200倍,对于写入操作,由于都至少完成一次写入操作因此没有读取那么明显,但是很显然其加速比也达到了2倍多的水平,进一步说明了合理的Buffer设置可以极大的提升系统性能</p>
 
 </body>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });</script>
 </html>
