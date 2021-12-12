@@ -88,6 +88,7 @@ log/* //忽略log下所有文件
 
 然后就需要自己进行冲突合并了
 
+
 4. 回退git版本到指定版本,版本号可以从git仓库中查,之后如果要将master分支更新的话,需要git push -f
 > git reset --hard "目标版本号"
 
@@ -103,4 +104,9 @@ log/* //忽略log下所有文件
 >取消代理:
 >+ git config --global --unset http.proxy
 >+ git config --global --unset https.proxy
+
+6. 中文乱码解决方案
+如果中文文件名出现类似\212\210之类的乱码,可以使用下面的方式让中文字符正常显示
+>+ git config --global core.quotepath false 
+
 

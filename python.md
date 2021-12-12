@@ -32,3 +32,17 @@ get_file(os.getcwd()) #调用递归函数
 注：也可使用os.walk()实现，具体可自行搜索
 参考链接：https://blog.csdn.net/sinat_29957455/article/details/82778306
 
+## 文件读写
+使用open打开指定文件,并确定读写形式,如下:
+```python
+file = open("data.txt","r+")
+content = file.read()
+file.write("hello world")
+```
+
+## re
+按多种分隔符split字符串使用|表示或:
+```python
+re.split(',|.|?',test)
+```
+
