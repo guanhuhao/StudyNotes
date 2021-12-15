@@ -4,7 +4,7 @@ using namespace std;
 const int n = 1000000;
 int a[n+10],b[n+10],c[n+10],d[n+10];
 int aa[n+10],bb[n+10],cc[n+10],dd[n+10];
-void chuan(){
+double chuan(){
     clock_t begin = clock();
     for(int i =1;i<=n;i++){
         aa[i]=bb[i]+cc[i+1];
@@ -13,12 +13,17 @@ void chuan(){
         cc[i]=aa[i]*dd[i];
     }
     clock_t end = clock();
-    printf("串行用时:%5lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
+    // printf("串行用时:%5lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
+    return 1000.0*(end-begin)/CLOCKS_PER_SEC;
 }
-void check(){
+bool check(){
     for(int i=1;i<=n;i++){
-        if(aa[i]!=a[i]||cc[i]!=c[i]) cout<<"error!"<<endl;
+        if(aa[i]!=a[i]||cc[i]!=c[i]) {
+            cout<<"error!"<<endl;
+            return false;
+        }
     }
+    return true;
 }
 int main(int argc, char* argv[])
 {
@@ -30,7 +35,7 @@ int main(int argc, char* argv[])
         d[i]=dd[i]=rand()%100;
 
     }
-    chuan();
+    double time_seq = chuan();
 
     clock_t begin = clock();
     #pragma omp parallel for 
@@ -42,7 +47,10 @@ int main(int argc, char* argv[])
         c[i]=a[i]*d[i];
     }
     clock_t end = clock();
-    printf("并行用时:%5lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
+    if (check()) printf("串行程序与并行程序结果一致!\n");
+    double time_pra = 1000.0*(end-begin)/CLOCKS_PER_SEC;
+    printf("并行用时:%5lf(ms)\n",time_pra);
+    printf("串行用时:%5lf(ms)\n",time_seq);
+    printf("加速比为:%lf\n",time_seq/time_pra);
 
-    check();
 } /* end main */
