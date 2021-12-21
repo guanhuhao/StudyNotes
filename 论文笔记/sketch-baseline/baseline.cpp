@@ -1,6 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int n = 10000;
+const int n = 1000000;
 const int R = 10;
 int cnt[n+10];  
 struct Hot{
@@ -206,6 +206,7 @@ void randData(){
 int main(){
     vector<Hot> topk1,topk2;
     int k = 200;
+    printf("实验相关参数说明:\n数据范围n:%8d  topk个数k:%8d  区间长度r:%8d\n",n,k,R);
     randData();
     clock_t begin = clock();
     topk1 = baseline.get_topk(k);
