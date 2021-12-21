@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
-#include <malloc.h>
+// #include <malloc.h>
+#include <sys/malloc.h>
 using namespace std;
 #define FRAMESIZE 4096
 #define MAXPAGES 50000
@@ -95,6 +96,40 @@ public:
         }
         GHH("%d\n",tail);
     }
+    
+    int get(){
+        return nxt[0];
+    }
+};
+class CLOCK{
+public:
+    int ring[DEFBUFSIZE];
+    int cur;
+    CLOCK(){
+        cur = 0;
+        for(int i=0;i<DEFBUFSIZE;i++) ring[i]=1;
+    };
+  
+    void adjust(int id){
+        ring[id] = 1;
+        return;
+    }
+    
+    int get(){
+        while(1){
+            // cerr<<cur<<endl;
+            if(ring[cur] == 0){
+                ring[cur] = 1;
+                cur = (cur+1)%DEFBUFSIZE;
+                // cerr<<"find vic:"<<(cur-1+DEFBUFSIZE)%DEFBUFSIZE<<endl;
+                return (cur-1+DEFBUFSIZE)%DEFBUFSIZE+1;
+            }else{
+                ring[cur] = 0;
+                cur = (cur+1)%DEFBUFSIZE;
+            }
+            // cerr<<cur<<endl;
+        }
+    }
 };
 class DSMgr
 {
@@ -143,7 +178,7 @@ private:
     // Hash Table
     int ftop[DEFBUFSIZE];                   //frame到page的hash映射
     BCB* ptof[DEFBUFSIZE];                  //page到frame的映射
-    LRU_List LRU;
+    CLOCK LRU;
 
     BCB* PagefindBCB(int page_id);
     BCB* PagefindBCB_Pre(int page_id);
@@ -159,7 +194,9 @@ int main(){
     int op,id;
     int cntr,cntw;
     cntr=cntw=0;
-    while(scanf("%d,%d",&op,&id)!=EOF){                                          
+    while(scanf("%d,%d",&op,&id)!=EOF){   
+        // if(ghh%1000==0) cerr<<ghh<<endl;     
+        // printf("%d,%d\n",op,id);                                 
         if(op==0){
             cntr++;
             BM.Read(id);
@@ -263,7 +300,7 @@ void BMgr::AddBCB(int page_id,int frame_id){
 
 
 int BMgr::SelectVictim(){
-    return (this->LRU.nxt[0])-1;
+    return (this->LRU.get())-1;
 }
 
 int BMgr::Hash(int page_id){
