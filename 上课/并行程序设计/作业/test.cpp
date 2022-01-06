@@ -1,80 +1,211 @@
-// 本实验通信域大小为4,其中所有myid%4=0的构成通信域H
-// root节点为id最大的,因此要求numprocs应该为4k+1
-#include <stdio.h>
-#include <string.h>
-#include <bits/stdc++.h>
+#include "stdio.h"
+#include "stdlib.h"
+#include<bits/stdc++.h>
 #include "mpi.h"
-using namespace std;
-int data[1050];
-int recv[1050];
-void my_alltoall(const void *sendbuf, const int sendcount, MPI_Datatype sendtype, 
-    void *recvbuf,const int recvcount, MPI_Datatype recvtype, MPI_Comm comm,int numprocs,int myid){
-        int offset = 0;
-        MPI_Status status;
-        // printf("numprocs: %d\n",numprocs);
-        for(int i=0;i<numprocs;i++) {
-            if(i==myid) continue;
-            MPI_Send((int*)(sendbuf)+i*sendcount, sendcount, sendtype, i, 1, comm);
-            // printf("thread %d send msg to thread %d\n",myid,i);
-        }
-        for(int i=0;i<numprocs;i++) {
-            if(i==myid) continue;
-            MPI_Recv((int*)(recvbuf)+i*recvcount, recvcount, recvtype, i, 1, comm, &status);
-        }
-
-        // printf("thread %d recived data :\n",myid);
-        // for(int i=0;i<numprocs*recvcount;i++){
-        //     printf("%d ",*((int*)(recvbuf)+i*recvcount));
-        // }
-        // printf("\n");
-}
-void my_allgather(const void *sendbuf, const int sendcount, MPI_Datatype sendtype, 
-    void *recvbuf,const int recvcount, MPI_Datatype recvtype, MPI_Comm comm,int numprocs,int myid){
-        int offset = 0;
-        MPI_Status status;
-        for(int i=0;i<numprocs;i++) {
-            if(i==myid) continue;
-            MPI_Send((int*)sendbuf, sendcount, sendtype, i, 1, comm);
-        }
-        for(int i=0;i<numprocs;i++) {
-            if(i==myid) continue;
-            MPI_Recv((int*)(recvbuf)+i*recvcount, recvcount, recvtype, i, 1, comm, &status);
-        }
-
-        // printf("thread %d recived data :\n",myid);
-        // for(int i=0;i<numprocs*recvcount;i++){
-        //     printf("%d ",*((int*)(recvbuf)+i*recvcount));
-        // }
-        // printf("\n");
-}
-int main(int argc, char* argv[])
+#define a(x,y) a[x*M+y]
+/*A为M*M矩阵*/
+#define A(x,y) A[x*M+y]
+#define l(x,y) l[x*M+y]
+#define u(x,y) u[x*M+y]
+#define floatsize sizeof(float)
+#define intsize sizeof(int)
+ 
+int M,N;
+int m;
+float *A;
+int my_rank;
+int p;
+MPI_Status status;
+ 
+void fatal(char *message)
 {
-    int numprocs, myid, source;
-    MPI_Status status;
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-    for(int i=0;i<10;i++) data[i]=myid*10+i;
-
-    clock_t begin = clock();
-    MPI_Alltoall(data,1,MPI_INT,recv,1,MPI_INT,MPI_COMM_WORLD);
-    clock_t end = clock();
-    if(myid == 0) printf("MPI_Alltoall 用时%.3lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
-
-    begin = clock();
-    my_alltoall(data,1,MPI_INT,recv,1,MPI_INT,MPI_COMM_WORLD,numprocs,myid);
-    end = clock();
-    if(myid == 0) printf("my_alltoall 用时%.3lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
-
-    begin = clock();
-    MPI_Allgather(data,1,MPI_INT,recv,1,MPI_INT,MPI_COMM_WORLD);
-    end = clock();
-    if(myid == 0) printf("MPI_AllGather 用时%.3lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
-
-    begin = clock();
-    my_allgather(data,1,MPI_INT,recv,1,MPI_INT,MPI_COMM_WORLD,numprocs,myid);
-    end = clock();
-    if(myid == 0) printf("my_allgather 用时%.3lf(ms)\n",1000.0*(end-begin)/CLOCKS_PER_SEC);
-
+    printf("%s\n",message);
+    exit(1);
+}
+ 
+void Environment_Finalize(float *a,float *f)
+{
+    free(a);
+    free(f);
+}
+ 
+int main(int argc, char **argv)
+{
+    int i,j,k,my_rank,group_size;
+    int i1,i2;
+    int v,w;
+    float *a,*f,*l,*u;
+    FILE *fdA;
+ 
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD,&group_size);
+    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
+ 
+    p=group_size;
+ 
+    if (my_rank==0)
+    {
+        fdA=fopen("dataIn.txt","r");
+        M = N = 100;
+        // fscanf(fdA,"%d %d", &M, &N);
+        // if(M != N)
+        // {
+        //     puts("The input is error!");
+        //     exit(0);
+        // }
+        A=(float *)malloc(floatsize*M*M);
+        for(i = 0; i < M; i ++)
+            for(j = 0; j < M; j ++)
+                A[i*M+j] = rand()%100;
+        //         fscanf(fdA, "%f", A+i*M+j);
+        // fclose(fdA);
+    }
+ 
+    /*0号进程将M广播给所有进程*/
+    MPI_Bcast(&M,1,MPI_INT,0,MPI_COMM_WORLD);
+    m=M/p;
+    if (M%p!=0) m++;	//M/p向上取余 
+ 
+    /*分配至各进程的【子矩阵大小为m*M】*/
+    a=(float*)malloc(floatsize*m*M);
+ 
+    /*各进程为主行元素建立【发送和接收缓冲区】*/
+    f=(float*)malloc(floatsize*M);
+ 
+    /*0号进程为l和u矩阵分配内存，以分离出经过变换后的A矩阵中的l和u矩阵*/
+    if (my_rank==0)
+    {
+        l=(float*)malloc(floatsize*M*M);
+        u=(float*)malloc(floatsize*M*M);
+    }
+ 
+    /*0号进程采用行交叉划分将矩阵A划分为大小【m*M的p块子矩阵】，依次发送给1至p-1号进程*/
+    if (a==NULL) fatal("allocate error\n");
+ 
+    if (my_rank==0)
+    {
+        for(i=0;i<m;i++)
+            for(j=0;j<M;j++)
+                a(i,j)=A(i,j);	//0号进程自己的子矩阵
+				 
+        for(i=1;i<p;i++)
+        {
+        	for(j=i*m;j<(i+1)*m;j++){
+        		if(j<M){
+            		i1=j%m;
+            		MPI_Send(&A(j,0),M,MPI_FLOAT,i,i1,MPI_COMM_WORLD);//发送给i1，tag是i2 
+            	}
+        	}
+        }
+    }
+    else
+    {
+        for(i=0;i<m;i++)
+            MPI_Recv(&a(i,0),M,MPI_FLOAT,0,i,MPI_COMM_WORLD,&status);
+    }
+ 
+    for(i=0;i<m;i++)
+        for(j=0;j<p;j++)
+    {
+        /*j号进程负责广播主行元素*/
+        if (my_rank==j)
+        {
+            v=i*p+j;
+            for (k=v;k<M;k++)
+                f[k]=a(i,k);
+ 
+            MPI_Bcast(f,M,MPI_FLOAT,my_rank,MPI_COMM_WORLD);
+        }
+        else
+        {
+            v=i*p+j;
+            MPI_Bcast(f,M,MPI_FLOAT,j,MPI_COMM_WORLD);
+        }
+ 
+        /*编号小于my_rank的进程（包括my_rank本身）利用主行对其第i+1,…,m-1行数据做行变换*/
+        if (my_rank<=j)
+            for(k=i+1;k<m;k++)
+        {
+            a(k,v)=a(k,v)/f[v];
+            for(w=v+1;w<M;w++)
+                a(k,w)=a(k,w)-f[w]*a(k,v);
+        }
+ 
+        /*编号大于my_rank的进程利用主行对其第i,…,m-1行数据做行变换*/
+        if (my_rank>j)
+            for(k=i;k<m;k++)
+        {
+            a(k,v)=a(k,v)/f[v];
+            for(w=v+1;w<M;w++)
+                a(k,w)=a(k,w)-f[w]*a(k,v);
+        }
+    }
+ 
+    /*0号进程从其余各进程中接收子矩阵a，得到经过变换的矩阵A*/
+    if (my_rank==0)
+    {
+        for(i=0;i<m;i++)
+            for(j=0;j<M;j++)
+                A(i*p,j)=a(i,j);
+    }
+    if (my_rank!=0)
+    {
+        for(i=0;i<m;i++)
+            MPI_Send(&a(i,0),M,MPI_FLOAT,0,i,MPI_COMM_WORLD);
+    }
+    else
+    {
+        for(i=1;i<p;i++)
+            for(j=0;j<m;j++)
+        {
+            MPI_Recv(&a(j,0),M,MPI_FLOAT,i,j,MPI_COMM_WORLD,&status);
+            for(k=0;k<M;k++)
+                A((j*p+i),k)=a(j,k);
+        }
+    }
+ 
+    if (my_rank==0)
+    {
+        for(i=0;i<M;i++)
+            for(j=0;j<M;j++)
+                u(i,j)=0.0;
+        for(i=0;i<M;i++)
+            for(j=0;j<M;j++)
+                if (i==j)
+                    l(i,j)=1.0;
+        else
+            l(i,j)=0.0;
+        for(i=0;i<M;i++)
+            for(j=0;j<M;j++)
+                if (i>j)
+                    l(i,j)=A(i,j);
+        else
+            u(i,j)=A(i,j);
+        printf("Input of file \"dataIn.txt\"\n");
+        printf("%d\t %d\n",M, N);
+        for(i=0;i<M;i++)
+        {
+            for(j=0;j<N;j++)
+                printf("%f\t",A(i,j));
+            printf("\n");
+        }
+        printf("\nOutput of LU operation\n");
+        printf("Matrix L:\n");
+        for(i=0;i<M;i++)
+        {
+            for(j=0;j<M;j++)
+                printf("%f\t",l(i,j));
+            printf("\n");
+        }
+        printf("Matrix U:\n");
+        for(i=0;i<M;i++)
+        {
+            for(j=0;j<M;j++)
+                printf("%f\t",u(i,j));
+            printf("\n");
+        }
+    }
     MPI_Finalize();
-} /* end main */
+    Environment_Finalize(a,f);
+    return(0);
+}
