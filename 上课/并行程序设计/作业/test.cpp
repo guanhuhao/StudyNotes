@@ -1,256 +1,211 @@
-#include <iostream>
-#include <mpi.h>
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <iomanip>
-
-#define A(x, y) A[x * K + y]
-#define B(x, y) B[x * N + y]
-#define C(x, y) C[x * N + y]
-#define subA(x, y) subA[x * b_Acol + y]
-#define subB(x, y) subB[x * b_Bcol + y]
-#define subC(x, y) subC[x * b_Bcol + y]
-using namespace std;
-
+#include "stdio.h"
+#include "stdlib.h"
+#include<bits/stdc++.h>
+#include "mpi.h"
+#define GHH(...) printf(__VA_ARGS__)
+#define a(x,y) a[x*M+y]
+/*A为M*M矩阵*/
+#define A(x,y) A[x*M+y]
+#define l(x,y) l[x*M+y]
+#define u(x,y) u[x*M+y]
+#define floatsize sizeof(float)
+#define intsize sizeof(int)
+ 
+int M,N;
+int m;
+float *A;
+int my_rank;
+int p;
+MPI_Status status;
+ 
+void fatal(char *message)
+{
+    printf("%s\n",message);
+    exit(1);
+}
+ 
+void Environment_Finalize(float *a,float *f)
+{
+    free(a);
+    free(f);
+}
+ 
 int main(int argc, char **argv)
 {
+    int i,j,k,my_rank,group_size;
+    int i1,i2;
+    int v,w;
+    float *a,*f,*l,*u;
+    FILE *fdA;
+ 
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD,&group_size);
+    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
+ 
+    p=group_size;
 
-    if (argc != 5)
+    if (my_rank==0)
     {
-        return 111;
+        // fdA=fopen("dataIn.txt","r");
+        M = N = 1000;
+        // fscanf(fdA,"%d %d", &M, &N);
+        // if(M != N)
+        // {
+        //     puts("The input is error!");
+        //     exit(0);
+        // }
+        A=(float *)malloc(floatsize*M*M);
+        for(i = 0; i < M; i ++)
+            for(j = 0; j < M; j ++)
+                A[i*M+j] = rand()%100;
+        //         fscanf(fdA, "%f", A+i*M+j);
+        // fclose(fdA);
     }
-    int rank, size;
-    int Pc, Pr;
-    int b_Bcol, b_Arow, b_Acol, b_Brow;
-    int self_col, self_row;
-    int M, N, K;
-    double start, end;
-    double t[4] = {0.0}, sumt[4];
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size); // assume size = x ^ 2, N % x == 0
+ 
+    clock_t begin = clock();
 
-    float *A, *B, *C, *subA, *subB, *subC, *subA_buf, *subB_buf;
-    M = atoi(argv[1]);
-    N = atoi(argv[2]);
-    K = atoi(argv[3]);
-    Pr = atoi(argv[4]);
-    if(size % Pr != 0 && rank == 0){
-        cout << "size cannot be divided by Pr. ERROR!" << endl;
-    }
-    Pc = size / Pr;
-
-    if (rank == 0)
+    /*0号进程将M广播给所有进程*/
+    MPI_Bcast(&M,1,MPI_INT,0,MPI_COMM_WORLD);
+    m=M/p;
+    if (M%p!=0) m++;	//M/p向上取余 
+ 
+    /*分配至各进程的【子矩阵大小为m*M】*/
+    a=(float*)malloc(floatsize*m*M);
+ 
+    /*各进程为主行元素建立【发送和接收缓冲区】*/
+    f=(float*)malloc(floatsize*M);
+ 
+    /*0号进程为l和u矩阵分配内存，以分离出经过变换后的A矩阵中的l和u矩阵*/
+    if (my_rank==0)
     {
-
-        A = (float *)malloc(M * K * sizeof(float));
-        B = (float *)malloc(N * K * sizeof(float));
-        C = (float *)malloc(M * N * sizeof(float));
-        for (int i = 0; i < M * K; ++i)
-        {
-            A[i] = 1.0;
-        }
-        for (int i = 0; i < K * N; ++i)
-        {
-            B[i] = 1.0;
-        }
+        l=(float*)malloc(floatsize*M*M);
+        u=(float*)malloc(floatsize*M*M);
     }
-
-    b_Arow = M / Pr;
-    b_Bcol = N / Pc;
-    b_Acol = K / Pc;
-    b_Brow = K / Pr;
-
-    start = MPI_Wtime();
-    MPI_Comm topo_comm, row_comm, col_comm;
-    int topo_dims[2] = {Pr, Pc};
-    int periods[2] = {1, 1};
-    int local_rank;
-    int coord[2];
-    MPI_Cart_create(MPI_COMM_WORLD, 2, topo_dims, periods, 1, &topo_comm);
-    MPI_Comm_rank(topo_comm, &local_rank);
-    MPI_Cart_coords(topo_comm, local_rank, 2, coord);
-    int masks[4] = {0, 1, 1, 0};
-    MPI_Cart_sub(topo_comm, masks, &row_comm);
-    MPI_Cart_sub(topo_comm, masks + 2, &col_comm);
-
-    subA = (float *)malloc(b_Arow * b_Acol * sizeof(float));
-    subB = (float *)malloc(b_Brow * b_Bcol * sizeof(float));
-    subC = (float *)malloc(b_Arow * b_Bcol * sizeof(float));
-
-    subA_buf = (float *)malloc(b_Arow * sizeof(float));
-    subB_buf = (float *)malloc(b_Bcol * sizeof(float));
-
-    if (rank == 0)
+ 
+    /*0号进程采用行交叉划分将矩阵A划分为大小【m*M的p块子矩阵】，依次发送给1至p-1号进程*/
+    if (a==NULL) fatal("allocate error\n");
+    if (my_rank==0)
     {
-        for (int i = 0; i < b_Arow; ++i)
+        for(i=0;i<m;i++)
+            for(j=0;j<M;j++)
+                a(i,j)=A(i,j);	//0号进程自己的子矩阵
+				 
+        for(i=1;i<p;i++)
         {
-            for (int j = 0; j < b_Acol; ++j)
-            {
-                subA(i, j) = A((i + coord[0] * b_Arow), (j + coord[1] * b_Acol));
-            }
-        }
-
-        for (int i = 1; i < size; ++i)
-        {
-            int other_coord[2];
-            MPI_Cart_coords(topo_comm, i, 2, other_coord);
-            for (int j = 0; j < b_Arow; ++j)
-            {
-                MPI_Send(&A((other_coord[0] * b_Arow + j), (other_coord[1] * b_Acol)), b_Acol, MPI_FLOAT, i, j, topo_comm);
-            }
+        	for(j=i*m;j<(i+1)*m;j++){
+        		if(j<M){
+            		i1=j%m;
+            		MPI_Send(&A(j,0),M,MPI_FLOAT,i,i1,MPI_COMM_WORLD);//发送给i1，tag是i2 
+            	}
+        	}
         }
     }
     else
     {
-        for (int j = 0; j < b_Arow; ++j)
-        {
-            MPI_Recv(subA + j * b_Acol, b_Acol, MPI_FLOAT, 0, j, topo_comm, MPI_STATUS_IGNORE);
-        }
+        for(i=0;i<m;i++)
+            MPI_Recv(&a(i,0),M,MPI_FLOAT,0,i,MPI_COMM_WORLD,&status);
     }
-    end = MPI_Wtime();
-    t[0] = end - start;
-
-    start = MPI_Wtime();
-    if (rank == 0)
+    for(i=0;i<m;i++)
+        for(j=0;j<p;j++)
     {
-        for (int i = 0; i < b_Brow; ++i)
+        /*j号进程负责广播主行元素*/
+        if (my_rank==j)
         {
-            for (int j = 0; j < b_Bcol; ++j)
-            {
-                subB(i, j) = B((i + coord[0] * b_Brow), (j + coord[1] * b_Bcol));
-            }
-        }
-
-        for (int i = 1; i < size; ++i)
-        {
-            int other_coord[2];
-            MPI_Cart_coords(topo_comm, i, 2, other_coord);
-            for (int j = 0; j < b_Brow; ++j)
-            {
-                MPI_Send(&B((other_coord[0] * b_Brow + j), (other_coord[1] * b_Bcol)), b_Bcol, MPI_FLOAT, i, j, topo_comm);
-            }
-        }
-    }
-    else
-    {
-        for (int j = 0; j < b_Brow; ++j)
-        {
-            MPI_Recv(subB + j * b_Bcol, b_Bcol, MPI_FLOAT, 0, j, topo_comm, MPI_STATUS_IGNORE);
-        }
-    }
-    memset(subC, 0, b_Arow * b_Bcol * sizeof(float));
-    MPI_Barrier(MPI_COMM_WORLD);
-    end = MPI_Wtime();
-    t[1] = end - start;
-
-    start = MPI_Wtime();
-    for (int k = 0; k < K; ++k)
-    {
-        int root = k / b_Acol;
-        int j = k % b_Acol;
-        if (coord[1] == root)
-        {
-            for (int i = 0; i < b_Arow; ++i)
-            {
-                subA_buf[i] = subA(i, j);
-            }
-            MPI_Bcast(subA_buf, b_Arow, MPI_FLOAT, root, row_comm);
+            v=i*p+j;
+            for (k=v;k<M;k++)
+                f[k]=a(i,k);
+ 
+            MPI_Bcast(f,M,MPI_FLOAT,my_rank,MPI_COMM_WORLD);
         }
         else
         {
-            MPI_Bcast(subA_buf, b_Arow, MPI_FLOAT, root, row_comm);
+            v=i*p+j;
+            MPI_Bcast(f,M,MPI_FLOAT,j,MPI_COMM_WORLD);
         }
-
-        root = k / b_Brow;
-        j = k % b_Brow;
-        if (coord[0] == root)
+ 
+        /*编号小于my_rank的进程（包括my_rank本身）利用主行对其第i+1,…,m-1行数据做行变换*/
+        if (my_rank<=j)
+            for(k=i+1;k<m;k++)
         {
-            for (int i = 0; i < b_Bcol; ++i)
-            {
-                subB_buf[i] = subB(j, i);
-            }
-            MPI_Bcast(subB_buf, b_Bcol, MPI_FLOAT, root, col_comm);
+            a(k,v)=a(k,v)/f[v];
+            // #pragma omp parallel for private(k,w,v) shared(f,a)
+            for(w=v+1;w<M;w++)
+                a(k,w)=a(k,w)-f[w]*a(k,v);
         }
-        else
+ 
+        /*编号大于my_rank的进程利用主行对其第i,…,m-1行数据做行变换*/
+        if (my_rank>j)
+            for(k=i;k<m;k++)
         {
-            MPI_Bcast(subB_buf, b_Bcol, MPI_FLOAT, root, col_comm);
-        }
-
-        for (int ii = 0; ii < b_Arow; ++ii)
-        {
-            for (int jj = 0; jj < b_Bcol; ++jj)
-            {
-                subC(ii, jj) += subA_buf[ii] * subB_buf[jj];
-            }
+            a(k,v)=a(k,v)/f[v];
+            // #pragma omp parallel for private(k,w,v) shared(a,f,M)
+            for(w=v+1;w<M;w++)
+                a(k,w)=a(k,w)-f[w]*a(k,v);
         }
     }
-    end = MPI_Wtime();
-    t[2] = end - start;
-
-    start = MPI_Wtime();
-    if (rank == 0)
+ 
+    /*0号进程从其余各进程中接收子矩阵a，得到经过变换的矩阵A*/
+    if (my_rank==0)
     {
-        for (int i = 0; i < b_Arow; ++i)
-        {
-            for (int j = 0; j < b_Bcol; ++j)
-            {
-                C((i + coord[0] * b_Arow), (j + coord[1] * b_Bcol)) = subC(i, j);
-            }
-        }
-        for (int i = 1; i < size; ++i)
-        {
-            int other_coord[2];
-            MPI_Cart_coords(topo_comm, i, 2, other_coord);
-            for (int j = 0; j < b_Arow; ++j)
-            {
-                MPI_Recv(&C((other_coord[0] * b_Arow + j), (other_coord[1] * b_Bcol)), b_Bcol, MPI_FLOAT, i, j, topo_comm, MPI_STATUS_IGNORE);
-            }
-        }
+        for(i=0;i<m;i++)
+            #pragma omp parallel for private(i,j,k) shared(A,a)
+            for(j=0;j<M;j++)
+                A(i*p,j)=a(i,j);
+    }
+    if (my_rank!=0)
+    {
+        for(i=0;i<m;i++)
+            MPI_Send(&a(i,0),M,MPI_FLOAT,0,i,MPI_COMM_WORLD);
     }
     else
     {
-        for (int j = 0; j < b_Arow; ++j)
+        for(i=1;i<p;i++)
+            for(j=0;j<m;j++)
         {
-            MPI_Send(subC + j * b_Bcol, b_Bcol, MPI_FLOAT, 0, j, topo_comm);
+            MPI_Recv(&a(j,0),M,MPI_FLOAT,i,j,MPI_COMM_WORLD,&status);
+            #pragma omp parallel for private(i,j,k) shared(A,a,p)
+            for(k=0;k<M;k++)
+                A((j*p+i),k)=a(j,k);
         }
     }
-    MPI_Barrier(MPI_COMM_WORLD);
-    end = MPI_Wtime();
-    t[3] = end - start;
-
-    // cout << "rank: " << rank << ", sendA time:" << t[0] * 1e3 << ", sendB time:" << t[1] * 1e3 << ", calC time:" << t[2] * 1e3 << ", recvC time:" << t[3] * 1e3 <<  " ms" << endl
-    MPI_Reduce(t, sumt, 4, MPI_DOUBLE, MPI_SUM, 0, topo_comm);
-
-    if (rank == 0)
+    if (my_rank==0)
     {
-        cout << sumt[2] * 1e3 / size << endl;
-        for (int i = 0; i < M; ++i)
-        {
-            for (int j = 0; j < N; ++j)
-            {
-                if(abs(C(i, j) - K) > 1e-3){
-                    cout << setprecision(20) << "Not close at (" << i << ", " << j << "), get " << C(i, j) << endl;
-                    if (i != 0)
-                        break;
-                }
-            }
-        }
+        memset(l,0,sizeof l);
+        memset(u,0,sizeof u);
+        for(i=0;i<M;i++)
+            l(i,i)=1.0;
+        for(i=0;i<M;i++)
+            for(j=0;j<M;j++)
+                if (i>j) l(i,j)=A(i,j);
+                else u(i,j)=A(i,j);
+        // printf("Input of file \"dataIn.txt\"\n");
+        // printf("%d\t %d\n",M, N);
+        // for(i=0;i<M;i++)
+        // {
+        //     for(j=0;j<N;j++)
+        //         printf("%f\t",A(i,j));
+        //     printf("\n");
+        // }
+        // printf("\nOutput of LU operation\n");
+        // printf("Matrix L:\n");
+        // for(i=0;i<M;i++)
+        // {
+        //     for(j=0;j<M;j++)
+        //         printf("%f\t",l(i,j));
+        //     printf("\n");
+        // }
+        // printf("Matrix U:\n");
+        // for(i=0;i<M;i++)
+        // {
+        //     for(j=0;j<M;j++)
+        //         printf("%f\t",u(i,j));
+        //     printf("\n");
+        // }
     }
-
-    if (rank == 0)
-    {
-        free(A);
-        free(B);
-        free(C);
-    }
-    free(subA);
-    free(subB);
-    free(subC);
-    free(subA_buf);
-    free(subB_buf);
     MPI_Finalize();
-    return 0;
+    Environment_Finalize(a,f);
+
+    clock_t end = clock();
+    printf("thread %d:%lf(ms)\n",my_rank,1000.0*(end-begin)/CLOCKS_PER_SEC);
+    return(0);
 }
