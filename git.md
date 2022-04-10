@@ -78,7 +78,7 @@ log/* //忽略log下所有文件
 > git rm -r --cached .
 
 2. 放弃本地修改，强制更新远程文件
-> git fetch --all
+> git fetch --all1
 
 3. 保存当前工作目录代码,回退到可以pull的代码
 > git stash
