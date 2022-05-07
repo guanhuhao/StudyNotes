@@ -41,3 +41,8 @@ conda install nb_conda_kernels
 ```
 conda install ipykernel
 ```
+或者在conda创建的环境中手动添加配置
+```
+python -m ipykernel install --user --name=xxx
+```
+PS:可以使用“jupyter kernelspec list” 查看当前可使用内核，使用“jupyter kernelspec remove xxx”移除对应内核
