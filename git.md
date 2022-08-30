@@ -39,6 +39,11 @@ log/* //忽略log下所有文件
 
 2. 放弃本地修改，强制更新远程文件
 > git fetch --all
+
+## clone/push 慢解决办法
+设置ssh代理
+参考链接:https://zhuanlan.zhihu.com/p/481574024
+
 =======
 # Git基础操作使用指南
 

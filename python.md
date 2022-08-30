@@ -54,10 +54,37 @@ file.write("hello world")
 |a+	|打开一个文件用于读写。如果该文件已存在，文件指针将会放在文件的结尾。文件打开时会是追加模式。如果该文件不存在，创建新文件用于读写。|
 |ab+	|以二进制格式打开一个文件用于追加。如果该文件已存在，文件指针将会放在文件的结尾。如果该文件不存在，创建新文件用于读写|
 
-
-## re
-按多种分隔符split字符串使用|表示或:
+## 排序
+sort函数的第一个参数是一个迭代器,第二个参数为自定义比较函数这里使用lambda函数,表示输入为x,返回-x[1],然后按照返回值进行升序排列
 ```python
-re.split(',|.|?',test)
+sorted(List,key = lambda x:-x[1])
+```
+## pyplot
+使用之前需要引入下面的库
+```python
+import matplotlib.pyplot as plt 
 ```
 
+画折线图并显示
+```
+x = [i for i in dic.keys()] 
+y = [i for i in dic.values()]
+plt.plot(x,y)
+plt.show()
+```
+
+plt可选参数
+|参数|含义|
+|---|---|
+|color|线条颜色|
+|linewidth|线粗|
+|linestyle|线型|
+
+使用对数坐标
+```python
+plt.yscale('log')
+plt.xscale('log')
+```
+
+plt图注相关链接:
+https://zhuanlan.zhihu.com/p/41781440
