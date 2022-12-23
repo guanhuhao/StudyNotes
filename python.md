@@ -88,3 +88,19 @@ plt.xscale('log')
 
 plt图注相关链接:
 https://zhuanlan.zhihu.com/p/41781440
+
+## 计时
+### 日期时间戳
+```python
+import datetime
+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+```
+
+### 计时函数
+```python
+import time 
+time_beg = time.time()
+# do something
+time_end = time.time()
+print("runtime:",(time_end-time_beg),"s")
+```
