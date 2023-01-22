@@ -159,3 +159,7 @@ https://github.com/HexChristmas/archlinux
 >grub-mkconfig -o /boot/grub/grub.cfg
 
 参考链接：https://blog.csdn.net/weixin_40293491/article/details/108091530
+
+## 多显示器/显示器切换黑屏
+删除/重命名(mv) /etc/X11/mhwd.d/nvidia.conf
+PS:可以试一下
