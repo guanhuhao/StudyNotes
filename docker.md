@@ -45,10 +45,13 @@ EOF
 
 ```
 然后更新update一下
-> apt-get update
+> sudo apt-get update
+
+升级一下
+> apt-get upgrade
 
 ### 安装常用软件
-> apt-get install unzip wget make g++ vim 
+> sudo apt-get install unzip wget make g++ vim 
 
 PS:
 libssl-dev:用来给openssl用的(?),不然有的时候找不到openssl
