@@ -2,13 +2,29 @@
 常用指令
 >1.sudo docker ps # 列表显示容器
 2.sudo docker images # 列表显示镜像
-3.sudo docker run -it -v $/localpath$:$/dockerpath$ --name $name$ --cap-add=SYS_NICE xxx:yyy /bin/bash # 创建xxx镜像:yyytag的实例,命名为$name$,将容器$/dockerpath$挂载到$/localpath$下，SYS_NICE来避免mbind error
+3.sudo docker run -it -v $/localpath$:$/dockerpath$ --name $name$ --privileged=true --cap-add=SYS_NICE xxx:yyy /bin/bash # 创建xxx镜像:yyytag的实例,命名为$name$,将容器$/dockerpath$挂载到$/localpath$下，SYS_NICE来避免mbind error,--privileged=true 用来开启特权模式,否则无法在docker里使用systemctl等指令
 4.sudo docker container exec -it \[containerID]]  /bin/bash #进入对应ID的容器
 5.sudo systemctl start docker # 启动docker服务
 6.docker start name # 启动name的容器
 7.docker rm \[containerID] # 删除容器\
 8.docker stop name/ID$ # 关闭指定名字/ID的容器
 9.docker pull name:tag # 获取开源镜像
+
+docker run 指令备选参数
+```
+    --name=$NAME # 指定docker实例名字
+    --privileged=true #  用来开启特权模式,否则无法在docker里使用systemctl等指令
+    --cap-add=SYS_NICE # SYS_NICE来避免mbind error
+    --net $DEV$ # 指定虚拟网桥
+    --ip $ADDRESS$ # 指定IP
+    --restart=always # 自动启动docker
+    -p $host_port$:$tar_port$ # 端口映射
+    -v $/localpath$:$/dockerpath$ # $/dockerpath$挂载到$/localpath$下
+    -h $Hostname$ # 指定主机名称
+    #在/bin/bash 命令后添加可执行文件,则容器启动后都会运行该脚本
+```
+
+docker run -it --name slave1 --privileged=true --cap-add=SYS_NICE --net hadoop --ip 192.168.5.31 -p 10002:22 ghh/hadoop:ssh /bin/bash
 
 ## 给docker换源
 使用下面编辑/etc/docker/daemon.json,覆盖为下面内容
