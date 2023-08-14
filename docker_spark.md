@@ -21,7 +21,9 @@ ip addr add 192.168.3.1/24 dev br1  # 分配网桥ip段: ip addr add [ADDRESS] [
 ### 配置hadoop集群环境
 教程1:https://cloud.tencent.com/developer/article/1084157?from=10680
 教程2:https://github.com/Wanghui-Huang/CQU_bigdata/blob/master/Experiment/Ex1_SettingUpEnvironment/ex1.md
+教程3:https://juejin.cn/post/7095277036868436004
 
+推荐教程3
 使用docker 配置教程:https://www.cnblogs.com/upupfeng/p/13616125.html
 
 spark-submit --class umn.dcsg.examples.ShortestPathRunner ./examples/target/examples-1.0-SNAPSHOT-jar-with-dependencies.jar ./examples/data/spdata.csv -1 "2D" 1 100 1 1 1 

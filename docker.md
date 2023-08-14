@@ -2,7 +2,7 @@
 常用指令
 >1.sudo docker ps # 列表显示容器
 2.sudo docker images # 列表显示镜像
-3.sudo docker run -it -v $/localpath$:$/dockerpath$ --name $name$ --privileged=true --cap-add=SYS_NICE xxx:yyy /bin/bash # 创建xxx镜像:yyytag的实例,命名为$name$,将容器$/dockerpath$挂载到$/localpath$下，SYS_NICE来避免mbind error,--privileged=true 用来开启特权模式,否则无法在docker里使用systemctl等指令
+3.sudo docker run -it -v $/localpath$:$/dockerpath$ --name $name$ --privileged=true  --cap-add=SYS_NICE xxx:yyy /bin/bash # 创建xxx镜像:yyytag的实例,命名为$name$,将容器$/dockerpath$挂载到$/localpath$下，SYS_NICE来避免mbind error,--privileged=true 用来开启特权模式,否则无法在docker里使用systemctl等指令
 4.sudo docker container exec -it \[containerID]]  /bin/bash #进入对应ID的容器
 5.sudo systemctl start docker # 启动docker服务
 6.docker start name # 启动name的容器
@@ -24,7 +24,16 @@ docker run 指令备选参数
     #在/bin/bash 命令后添加可执行文件,则容器启动后都会运行该脚本
 ```
 
-docker run -it --name slave1 --privileged=true --cap-add=SYS_NICE --net hadoop --ip 192.168.5.31 -p 10002:22 ghh/hadoop:ssh /bin/bash
+docker network :创建/管理docker虚拟网段备选参数
+```
+ls: 查看当前虚拟网段
+create --driver bridge --subnet 192.168.3.0/24 --gateway 192.168.3.1 mesh-net: 创建叫mesh-net的ip段为192.168.3.0/24的桥接模式的网段,网关为192.168.3.1
+```
+docker network create --driver bridge --subnet 192.168.3.0/24 --gateway 192.168.3.1 mesh-net
+
+docker run -it --name slave1 --privileged=true --cap-add=SYS_NICE --net hadoop --ip 192.168.5.31 ghh/hadoop:ssh /bin/bash
+
+docker run -dt --name GPT  --restart=always --gpus all --network=host -v /raid/GPT/:/code -v /raid/GPT/model:/model -v /raid/GPT/output:/output -w /code pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel /bin/bash
 
 ## 给docker换源
 使用下面编辑/etc/docker/daemon.json,覆盖为下面内容
@@ -66,8 +75,8 @@ EOF
 升级一下
 > apt-get upgrade
 
-### 安装常用软件
-> sudo apt-get install unzip wget make g++ vim 
+### 安装常用软件 
+> sudo apt-get install unzip wget make g++ vim proxychains openssh-server openssh-client python cmake ufw
 
 PS:
 libssl-dev:用来给openssl用的(?),不然有的时候找不到openssl
@@ -122,3 +131,21 @@ test/image:tag：仓库名/镜像名:TAG名。
 
 
 参考链接:https://www.jianshu.com/p/0692043b6d7f
+
+
+docker run -dt --name vicuna_cu120 --restart=always --gpus all --network=host \
+-v /raid/vicuna13/code:/code \
+-v /raid/vicuna13/model:/model \
+-v /raid/vicuna13/output:/output \
+-w /code \
+ddl_gpt/pytorch:2.0.0-cuda11.7-cudnn8-devel \
+/bin/bash
+
+cat nvidia-container-runtime-script.sh
+
+sudo curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | \
+  sudo apt-key add -
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+sudo curl -s -L https://nvidia.github.io/nvidia-container-runtime/$distribution/nvidia-container-runtime.list | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+sudo apt-get update
