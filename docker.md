@@ -29,21 +29,20 @@ docker network :创建/管理docker虚拟网段备选参数
 ls: 查看当前虚拟网段
 create --driver bridge --subnet 192.168.3.0/24 --gateway 192.168.3.1 mesh-net: 创建叫mesh-net的ip段为192.168.3.0/24的桥接模式的网段,网关为192.168.3.1
 ```
-docker network create --driver bridge --subnet 192.168.3.0/24 --gateway 192.168.3.1 mesh-net
-
-docker run -it --name slave1 --privileged=true --cap-add=SYS_NICE --net hadoop --ip 192.168.5.31 ghh/hadoop:ssh /bin/bash
-
-docker run -dt --name GPT  --restart=always --gpus all --network=host -v /raid/GPT/:/code -v /raid/GPT/model:/model -v /raid/GPT/output:/output -w /code pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel /bin/bash
 
 ## 给docker换源
 使用下面编辑/etc/docker/daemon.json,覆盖为下面内容
 ```
-"registry-mirrors": [
-    "http://hub-mirror.c.163.com",
-    "https://docker.mirrors.ustc.edu.cn",
-    "https://registry.docker-cn.com"
-]
-
+{
+  "registry-mirrors": [
+      "https://registry.cn-hangzhou.aliyuncs.com",
+      "https://docker.mirrors.ustc.edu.cn",
+      "https://registry.docker-cn.com"
+  ]
+}
+cd ../gin-blog-front
+nohup pnpm dev > ../../script/log/FE-Client.log &
+cd ../../script
 ```
 重启docker服务
 > sudo systemctl daemon-reload
